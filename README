@@ -1,0 +1,50 @@
+# Azure VM Start/Stop Automation (AZ CLI + Shell)
+
+This package contains simple scripts plus a robust, tag-aware tool to start/stop Azure Virtual Machines safely and idempotently.
+
+## Files
+- `start-vm.sh` – minimal start script for a single VM.
+- `stop-vm.sh` – minimal stop/deallocate script for a single VM (choose `stop` vs `deallocate`).
+- `start-vm.bat` → Windows batch file wrapper to run start-vm.sh with Task Scheduler
+- `stop-vm.bat` → Windows batch file wrapper to run stop-vm.sh with Task Scheduler
+
+## Prerequisites
+- Azure CLI installed locally **or** Azure Cloud Shell.
+- Login:
+```bash
+az login
+# or on an Azure VM/Automation account with a managed identity:
+# az login --identity
+```
+- Ensure your identity has `Microsoft.Compute/virtualMachines/*` permissions on the target subscription/resource group.
+
+## Usage
+
+### Simple scripts
+```bash
+chmod +x start-vm.sh stop-vm.sh
+
+./start-vm.sh #start
+./stop-vm.sh       # deallocate (default)
+./stop-vm.sh stop      # only stop (keeps allocation)
+```
+
+
+
+
+## Scheduling
+
+Step-by-step for scheduling:
+
+Open Task Scheduler (taskschd.msc)
+
+Create Basic Task → Choose Daily → Set time
+
+Action → Start a Program → Select start-vm.bat or stop-vm.bat
+
+Save → Done
+
+## Verification
+```bash
+az vm get-instance-view -g startstop-rg  -n startupstop-vm --query "instanceView.statuses[?starts_with(code, 'PowerState/')].displayStatus | [0]"
+```
